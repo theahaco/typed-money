@@ -1,8 +1,13 @@
 //! Conversion methods for Amount.
 
-use super::type_def::Amount;
-#[cfg(not(feature = "std"))]
+use super::type_def::{Amount, Decimal};
+
+#[cfg(all(
+    not(feature = "std"),
+    any(feature = "use_rust_decimal", feature = "use_bigdecimal")
+))]
 use crate::inner_prelude::*;
+
 use crate::{Currency, RoundingMode};
 
 #[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
@@ -82,6 +87,30 @@ impl<C: Currency> Amount<C> {
         rounded.to_string().parse().unwrap_or(0)
     }
 
+    #[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+    pub fn to_major_rounded(&self, mode: RoundingMode) -> i64 {
+        use fastnum::decimal::RoundingMode as FastnumRoundingMode;
+
+        let fastnum_mode = match mode {
+            RoundingMode::HalfUp => FastnumRoundingMode::HalfUp,
+            RoundingMode::HalfDown => FastnumRoundingMode::HalfDown,
+            RoundingMode::HalfEven => FastnumRoundingMode::HalfEven,
+            RoundingMode::Up => FastnumRoundingMode::Up,
+            RoundingMode::Down => FastnumRoundingMode::Down,
+            RoundingMode::Floor => FastnumRoundingMode::Floor,
+            RoundingMode::Ceiling => FastnumRoundingMode::Ceiling,
+        };
+        let mut val = self.value;
+        if matches!(mode, RoundingMode::HalfDown | RoundingMode::Ceiling) && C::DECIMALS > 1 {
+            val = self.value.with_rounding_mode(FastnumRoundingMode::Up);
+            for i in (1..C::DECIMALS).rev() {
+                val = val.round(i as i16);
+            }
+        }
+        val = val.with_rounding_mode(fastnum_mode);
+        val.round(0).to_i64().unwrap_or(0)
+    }
+
     /// Returns the amount in major units, truncating (flooring) any decimals.
     ///
     /// ⚠️ **Warning**: This discards fractional amounts without rounding.
@@ -95,7 +124,7 @@ impl<C: Currency> Amount<C> {
     /// let amount = Amount::<USD>::from_minor(12399);  // $123.99
     /// assert_eq!(amount.to_major_floor(), 123);  // Lost $0.99!
     /// ```
-    #[cfg(feature = "use_rust_decimal")]
+
     pub fn to_major_floor(&self) -> i64 {
         self.to_major_rounded(RoundingMode::Floor)
     }
@@ -115,7 +144,6 @@ impl<C: Currency> Amount<C> {
     /// let amount2 = Amount::<USD>::from_minor(12349);  // $123.49
     /// assert_eq!(amount2.to_major_half_up(), 123);     // 0.49 rounds down
     /// ```
-    #[cfg(feature = "use_rust_decimal")]
     pub fn to_major_half_up(&self) -> i64 {
         self.to_major_rounded(RoundingMode::HalfUp)
     }
@@ -135,7 +163,6 @@ impl<C: Currency> Amount<C> {
     /// let amount2 = Amount::<USD>::from_minor(12351);  // $123.51
     /// assert_eq!(amount2.to_major_half_down(), 124);   // 0.51 rounds up
     /// ```
-    #[cfg(feature = "use_rust_decimal")]
     pub fn to_major_half_down(&self) -> i64 {
         self.to_major_rounded(RoundingMode::HalfDown)
     }
@@ -156,7 +183,6 @@ impl<C: Currency> Amount<C> {
     /// let amount2 = Amount::<USD>::from_minor(12250);  // $122.50
     /// assert_eq!(amount2.to_major_half_even(), 122);   // Rounds to even (122)
     /// ```
-    #[cfg(feature = "use_rust_decimal")]
     pub fn to_major_half_even(&self) -> i64 {
         self.to_major_rounded(RoundingMode::HalfEven)
     }
@@ -179,7 +205,6 @@ impl<C: Currency> Amount<C> {
     /// let amount3 = Amount::<USD>::from_minor(12300);  // $123.00
     /// assert_eq!(amount3.to_major_ceiling(), 123);     // No decimals, stays same
     /// ```
-    #[cfg(feature = "use_rust_decimal")]
     pub fn to_major_ceiling(&self) -> i64 {
         self.to_major_rounded(RoundingMode::Ceiling)
     }
@@ -219,11 +244,23 @@ impl<C: Currency> Amount<C> {
                 .unwrap_or(0)
         }
     }
+
+    #[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+    pub fn to_minor(&self) -> i64 {
+        if C::DECIMALS == 0 {
+            self.value.to_i64().unwrap_or(0)
+        } else {
+            let scaled = self.value * Decimal::from(10_i64.pow(C::DECIMALS.into()));
+            scaled.round(0).to_i64().unwrap_or(0)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(all(not(feature = "std"), feature = "use_fastnum"))]
+    use crate::inner_prelude::*;
     use crate::{RoundingMode, USD};
 
     #[test]

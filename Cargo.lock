@@ -81,6 +81,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "bnum"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f781dba93de3a5ef6dc5b17c9958b208f6f3f021623b360fb605ea51ce443f10"
+
+[[package]]
 name = "borsh"
 version = "1.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -296,6 +302,15 @@ name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+
+[[package]]
+name = "fastnum"
+version = "0.7.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51f6015da818a5f7d959a39840e777cad2b8b99291e88cb051413fb2ebb81758"
+dependencies = [
+ "bnum",
+]
 
 [[package]]
 name = "funty"
@@ -846,6 +861,7 @@ dependencies = [
  "arrayvec",
  "bigdecimal",
  "criterion",
+ "fastnum",
  "rust_decimal",
  "serde",
  "serde_json",

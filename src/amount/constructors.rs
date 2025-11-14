@@ -1,14 +1,8 @@
 //! Constructor methods for Amount.
 
-use super::type_def::Amount;
+use super::type_def::{Amount, Decimal};
 use crate::Currency;
 use core::marker::PhantomData;
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 impl<C: Currency> Amount<C> {
     /// Creates a new `Amount` from a raw `Decimal` value.
@@ -86,6 +80,34 @@ impl<C: Currency> Amount<C> {
             Decimal::from(amount)
         } else {
             Decimal::new(BigInt::from(amount), C::DECIMALS.into())
+        };
+
+        Self {
+            value,
+            _currency: PhantomData,
+        }
+    }
+
+    #[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+    pub fn from_minor(amount: i64) -> Self {
+        use fastnum::decimal::Context;
+
+        let value = if C::DECIMALS == 0 {
+            Decimal::from(amount)
+        } else {
+            use fastnum::U128;
+
+            let sign = if amount < 0 {
+                fastnum::decimal::Sign::Minus
+            } else {
+                fastnum::decimal::Sign::Plus
+            };
+            Decimal::from_parts(
+                U128::from_i64(amount.abs()).unwrap(),
+                -(C::DECIMALS as i32),
+                sign,
+                Context::default(),
+            )
         };
 
         Self {

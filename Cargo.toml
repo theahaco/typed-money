@@ -27,6 +27,7 @@ rust_decimal = { version = "1.33", optional = true, default-features = false }
 bigdecimal = { version = "0.4", optional = true, default-features = false }
 serde = { version = "1.0", optional = true, features = ["derive"] }
 arrayvec = { version = "0.7.6", default-features = false }
+fastnum = { version = "0.7.3", optional = true, default-features = false }
 
 [dev-dependencies]
 serde_json = "1.0"
@@ -46,9 +47,10 @@ name = "rounding"
 harness = false
 
 [features]
-default = ["use_rust_decimal"]
+default = ["use_fastnum"]
 use_rust_decimal = ["dep:rust_decimal"]
 use_bigdecimal = ["dep:bigdecimal"]
+use_fastnum = ["dep:fastnum"]
 conversion_tracking = []
 serde_support = ["dep:serde"]
 std = ["rust_decimal?/std", "bigdecimal?/std"]

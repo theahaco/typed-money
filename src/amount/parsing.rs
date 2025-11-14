@@ -1,18 +1,12 @@
 //! String parsing for Amount.
 
-use super::type_def::Amount;
+use super::type_def::{Amount, Decimal};
 use crate::{Currency, MoneyError, MoneyResult};
 use core::marker::PhantomData;
 use core::str::FromStr;
 
 #[cfg(not(feature = "std"))]
 use crate::inner_prelude::*;
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 impl<C: Currency> Amount<C> {
     /// Parses a string into an Amount.
@@ -122,8 +116,12 @@ impl<C: Currency> Amount<C> {
 
         working = working.trim();
 
+        #[cfg(feature = "use_fastnum")]
+        let res = Decimal::from_str(working, fastnum::decimal::Context::default());
+        #[cfg(not(feature = "use_fastnum"))]
+        let res = Decimal::from_str(working);
         // Parse the numeric value
-        let decimal_value = Decimal::from_str(working).map_err(|_| MoneyError::ParseError {
+        let decimal_value = res.map_err(|_| MoneyError::ParseError {
             input: input.to_string(),
             expected_currency: Some(C::CODE),
             reason: format!("Invalid numeric value: '{working}'"),

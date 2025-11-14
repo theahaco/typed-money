@@ -72,6 +72,19 @@ impl<C: Currency> Amount<C> {
         }
     }
 
+    #[cfg(all(
+        feature = "use_fastnum",
+        not(feature = "use_rust_decimal"),
+        not(feature = "use_bigdecimal")
+    ))]
+    pub fn convert<To: Currency>(&self, rate: &Rate<C, To>) -> Amount<To> {
+        let val = self.value * (*rate.value());
+        Amount {
+            value: val.round(To::DECIMALS as i16),
+            _currency: PhantomData,
+        }
+    }
+
     /// Converts this amount to another currency using an explicit exchange rate,
     /// with optional conversion tracking.
     ///

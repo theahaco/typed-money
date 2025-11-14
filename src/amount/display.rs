@@ -1,18 +1,10 @@
 //! Display implementation for Amount.
 
-use super::type_def::Amount;
+use super::type_def::{Amount, Decimal};
 #[cfg(not(feature = "std"))]
 use crate::inner_prelude::*;
 use crate::Currency;
 use core::fmt;
-
-// #[cfg(feature = "no_std")]
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 // Helper function to truncate decimal to integer
 #[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
@@ -24,6 +16,11 @@ fn truncate_to_integer(value: &Decimal) -> String {
 fn truncate_to_integer(value: &Decimal) -> String {
     use bigdecimal::RoundingMode;
     format!("{}", value.with_scale_round(0, RoundingMode::Down))
+}
+
+#[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+fn truncate_to_integer(value: &Decimal) -> String {
+    format!("{}", value.trunc())
 }
 
 impl<C: Currency> fmt::Display for Amount<C> {

@@ -3,16 +3,10 @@
 //! All operations are pure functions that create new values (immutable).
 //! Cross-currency operations are prevented at compile time by the type system.
 
-use super::type_def::Amount;
+use super::type_def::{Amount, Decimal};
 use crate::Currency;
 use core::marker::PhantomData;
 use core::ops::{Add, Div, Mul, Sub};
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 // ============================================================================
 // Addition

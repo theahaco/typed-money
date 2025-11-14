@@ -83,6 +83,23 @@ impl<C: Currency> Amount<C> {
             self.value.with_scale_round(scale.into(), bigdecimal_mode)
         };
 
+        #[cfg(feature = "use_fastnum")]
+        let rounded_value = {
+            use fastnum::decimal::RoundingMode as FastnumRoundingMode;
+            let fastnum_mode = match mode {
+                RoundingMode::HalfUp => FastnumRoundingMode::HalfUp,
+                RoundingMode::HalfDown => FastnumRoundingMode::HalfDown,
+                RoundingMode::HalfEven => FastnumRoundingMode::HalfEven,
+                RoundingMode::Up => FastnumRoundingMode::Up,
+                RoundingMode::Down => FastnumRoundingMode::Down,
+                RoundingMode::Floor => FastnumRoundingMode::Floor,
+                RoundingMode::Ceiling => FastnumRoundingMode::Ceiling,
+            };
+            self.value
+                .with_rounding_mode(fastnum_mode)
+                .round(scale as i16)
+        };
+
         Self {
             value: rounded_value,
             _currency: PhantomData,
@@ -95,7 +112,7 @@ mod tests {
     use super::*;
     #[cfg(not(feature = "std"))]
     use crate::inner_prelude::*;
-    use crate::{BTC, EUR, GBP, JPY, USD};
+    use crate::{rate::decimal_new, BTC, EUR, GBP, JPY, USD};
 
     // ========================================================================
     // HalfUp Rounding Tests
@@ -103,9 +120,8 @@ mod tests {
 
     #[test]
     fn test_round_half_up_positive() {
-        use rust_decimal::Decimal;
         // Create 12.345 USD (3 decimal places)
-        let value = Decimal::new(12345, 3);
+        let value = decimal_new(12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -118,9 +134,8 @@ mod tests {
 
     #[test]
     fn test_round_half_up_exactly_half() {
-        use rust_decimal::Decimal;
         // Create 12.345 with .345 → rounds to .35
-        let value = Decimal::new(12345, 3);
+        let value = decimal_new(12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -132,9 +147,8 @@ mod tests {
 
     #[test]
     fn test_round_half_up_negative() {
-        use rust_decimal::Decimal;
         // Create -12.345
-        let value = Decimal::new(-12345, 3);
+        let value = decimal_new(-12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -150,9 +164,8 @@ mod tests {
 
     #[test]
     fn test_round_half_down_positive() {
-        use rust_decimal::Decimal;
         // Create 12.345 - rounds to 12.34 (half down)
-        let value = Decimal::new(12345, 3);
+        let value = decimal_new(12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -164,9 +177,8 @@ mod tests {
 
     #[test]
     fn test_round_half_down_negative() {
-        use rust_decimal::Decimal;
         // Create -12.345 - rounds to -12.34 (half down)
-        let value = Decimal::new(-12345, 3);
+        let value = decimal_new(-12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -182,9 +194,8 @@ mod tests {
 
     #[test]
     fn test_round_half_even_to_even() {
-        use rust_decimal::Decimal;
         // Create 12.345 - rounds to 12.34 (4 is even)
-        let value = Decimal::new(12345, 3);
+        let value = decimal_new(12345, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -194,7 +205,7 @@ mod tests {
         assert_eq!(rounded.to_minor(), 1234); // 12.34 (even)
 
         // Create 12.355 - rounds to 12.36 (6 is even)
-        let value2 = Decimal::new(12355, 3);
+        let value2 = decimal_new(12355, 3);
         let amount2 = Amount::<USD> {
             value: value2,
             _currency: PhantomData,
@@ -206,13 +217,12 @@ mod tests {
 
     #[test]
     fn test_round_half_even_minimizes_bias() {
-        use rust_decimal::Decimal;
         // Test that banker's rounding minimizes cumulative error
         let amounts = [
-            Decimal::new(10345, 3), // 10.345 → 10.34
-            Decimal::new(11345, 3), // 11.345 → 11.34
-            Decimal::new(12345, 3), // 12.345 → 12.34
-            Decimal::new(13355, 3), // 13.355 → 13.36
+            decimal_new(10345, 3), // 10.345 → 10.34
+            decimal_new(11345, 3), // 11.345 → 11.34
+            decimal_new(12345, 3), // 12.345 → 12.34
+            decimal_new(13355, 3), // 13.355 → 13.36
         ];
 
         let total_rounded: i64 = amounts
@@ -236,9 +246,8 @@ mod tests {
 
     #[test]
     fn test_round_up_positive() {
-        use rust_decimal::Decimal;
         // 12.341 rounds up to 12.35 (away from zero)
-        let value = Decimal::new(12341, 3);
+        let value = decimal_new(12341, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -250,9 +259,8 @@ mod tests {
 
     #[test]
     fn test_round_up_negative() {
-        use rust_decimal::Decimal;
         // -12.341 rounds to -12.35 (away from zero)
-        let value = Decimal::new(-12341, 3);
+        let value = decimal_new(-12341, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -276,9 +284,8 @@ mod tests {
 
     #[test]
     fn test_round_down_positive() {
-        use rust_decimal::Decimal;
         // 12.349 rounds down to 12.34 (towards zero)
-        let value = Decimal::new(12349, 3);
+        let value = decimal_new(12349, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -290,9 +297,8 @@ mod tests {
 
     #[test]
     fn test_round_down_negative() {
-        use rust_decimal::Decimal;
         // -12.349 rounds to -12.34 (towards zero)
-        let value = Decimal::new(-12349, 3);
+        let value = decimal_new(-12349, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -308,9 +314,8 @@ mod tests {
 
     #[test]
     fn test_round_floor_positive() {
-        use rust_decimal::Decimal;
         // 12.349 floors to 12.34
-        let value = Decimal::new(12349, 3);
+        let value = decimal_new(12349, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -322,9 +327,10 @@ mod tests {
 
     #[test]
     fn test_round_floor_negative() {
-        use rust_decimal::Decimal;
         // -12.341 floors to -12.35 (more negative)
-        let value = Decimal::new(-12341, 3);
+        let value = decimal_new(-12341, 3);
+        extern crate std;
+        std::println!("value: {}", value);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -340,9 +346,8 @@ mod tests {
 
     #[test]
     fn test_round_ceiling_positive() {
-        use rust_decimal::Decimal;
         // 12.341 ceilings to 12.35
-        let value = Decimal::new(12341, 3);
+        let value = decimal_new(12341, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -354,9 +359,8 @@ mod tests {
 
     #[test]
     fn test_round_ceiling_negative() {
-        use rust_decimal::Decimal;
         // -12.349 ceilings to -12.34 (less negative)
-        let value = Decimal::new(-12349, 3);
+        let value = decimal_new(-12349, 3);
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -372,9 +376,8 @@ mod tests {
 
     #[test]
     fn test_round_usd_respects_2_decimals() {
-        use rust_decimal::Decimal;
         // USD has 2 decimals - test with 3 decimal input
-        let value = Decimal::new(12341, 3); // 12.341
+        let value = decimal_new(12341, 3); // 12.341
         let amount = Amount::<USD> {
             value,
             _currency: PhantomData,
@@ -395,10 +398,9 @@ mod tests {
     #[test]
     fn test_round_btc_respects_8_decimals() {
         // BTC has 8 decimals
-        use rust_decimal::Decimal;
 
         // Create 0.123456789 BTC (9 decimals)
-        let value = Decimal::new(123456789, 9);
+        let value = decimal_new(123456789, 9);
         let amount = Amount::<BTC> {
             value,
             _currency: PhantomData,
@@ -419,9 +421,8 @@ mod tests {
 
     #[test]
     fn test_round_gbp_edge_cases() {
-        use rust_decimal::Decimal;
         // Test GBP with 3 decimals to 2
-        let value = Decimal::new(10345, 3); // £10.345
+        let value = decimal_new(10345, 3); // £10.345
         let amount = Amount::<GBP> {
             value,
             _currency: PhantomData,

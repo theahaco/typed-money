@@ -299,8 +299,14 @@
 #![warn(clippy::all)]
 
 // Ensure exactly one decimal backend is enabled
-#[cfg(not(any(feature = "use_rust_decimal", feature = "use_bigdecimal")))]
-compile_error!("Either 'use_rust_decimal' or 'use_bigdecimal' feature must be enabled");
+#[cfg(not(any(
+    feature = "use_rust_decimal",
+    feature = "use_bigdecimal",
+    feature = "use_fastnum"
+)))]
+compile_error!(
+    "Either 'use_rust_decimal', 'use_fastnum',  or 'use_bigdecimal' feature must be enabled"
+);
 
 #[cfg(all(feature = "use_rust_decimal", feature = "use_bigdecimal"))]
 compile_error!("Only one decimal backend can be enabled at a time");
@@ -317,7 +323,7 @@ mod inner_prelude;
 #[cfg(feature = "conversion_tracking")]
 pub mod conversion_tracking;
 
-pub use amount::{Amount, CurrencyMetadata};
+pub use amount::{Amount, CurrencyMetadata, Decimal};
 pub use currency::{
     // Core currencies
     Currency,

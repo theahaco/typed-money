@@ -67,14 +67,9 @@
 //! assert!(matches!(result, Err(MoneyError::InvalidRate { .. })));
 //! ```
 
-use crate::{Currency, MoneyError, MoneyResult};
+use crate::{amount::Decimal, Currency, MoneyError, MoneyResult};
+
 use core::marker::PhantomData;
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 // Helper constants for both backends
 #[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
@@ -88,6 +83,11 @@ fn decimal_zero() -> Decimal {
     Decimal::zero()
 }
 
+#[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+fn decimal_zero() -> Decimal {
+    Decimal::ZERO
+}
+
 #[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
 fn decimal_one() -> Decimal {
     Decimal::ONE
@@ -97,6 +97,37 @@ fn decimal_one() -> Decimal {
 fn decimal_one() -> Decimal {
     use bigdecimal::One;
     Decimal::one()
+}
+
+#[cfg(all(feature = "use_fastnum", not(feature = "use_rust_decimal")))]
+fn decimal_one() -> Decimal {
+    Decimal::ONE
+}
+
+#[cfg(not(feature = "use_fastnum"))]
+pub fn decimal_new(m: i64, e: u32) -> Decimal {
+    Decimal::new(me, e)
+}
+
+#[cfg(feature = "use_fastnum")]
+
+pub fn decimal_new(m: i64, e: u32) -> Decimal {
+    use fastnum::U128;
+    if m < 0 {
+        return Decimal::from_parts(
+            U128::from_i64(-m).unwrap(),
+            -(e as i32),
+            fastnum::decimal::Sign::Minus,
+            fastnum::decimal::Context::default(),
+        );
+    } else {
+        Decimal::from_parts(
+            U128::from_i64(m).unwrap(),
+            -(e as i32),
+            fastnum::decimal::Sign::Plus,
+            fastnum::decimal::Context::default(),
+        )
+    }
 }
 
 /// An exchange rate from one currency to another.
@@ -122,7 +153,6 @@ fn decimal_one() -> Decimal {
 ///
 /// Rates are immutable after creation to ensure auditability and prevent
 /// accidental modifications that could lead to financial errors.
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Rate<From: Currency, To: Currency> {
     /// The exchange rate value (always positive)
@@ -136,21 +166,6 @@ pub struct Rate<From: Currency, To: Currency> {
     ///
     /// Using `&'static str` preserves `Copy`. Callers can pass string literals
     /// for simple source tagging without allocations.
-    metadata_source: Option<&'static str>,
-    /// Phantom data for source currency (zero runtime cost)
-    _from: PhantomData<From>,
-    /// Phantom data for target currency (zero runtime cost)
-    _to: PhantomData<To>,
-}
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-#[derive(Debug, Clone, PartialEq)]
-pub struct Rate<From: Currency, To: Currency> {
-    /// The exchange rate value (always positive)
-    rate: Decimal,
-    /// Optional UNIX timestamp (seconds) representing when the rate was observed
-    metadata_timestamp_unix_secs: Option<u64>,
-    /// Optional static source identifier for auditability
     metadata_source: Option<&'static str>,
     /// Phantom data for source currency (zero runtime cost)
     _from: PhantomData<From>,
@@ -242,7 +257,7 @@ impl<From: Currency, To: Currency> Rate<From, To> {
     /// use typed_money::{Rate, USD, EUR};
     /// use rust_decimal::Decimal;
     ///
-    /// let decimal_rate = Decimal::new(85, 2);  // 0.85
+    /// let decimal_rate = decimal_new(85, 2);  // 0.85
     /// let rate = Rate::<USD, EUR>::try_from_decimal(decimal_rate)?;
     ///
     /// // Invalid rates return an error
@@ -279,7 +294,7 @@ impl<From: Currency, To: Currency> Rate<From, To> {
     /// use typed_money::{Rate, USD, EUR};
     /// use rust_decimal::Decimal;
     ///
-    /// let decimal_rate = Decimal::new(85, 2);  // 0.85
+    /// let decimal_rate = decimal_new(85, 2);  // 0.85
     /// let rate = Rate::<USD, EUR>::from_decimal(decimal_rate);
     /// ```
     pub fn from_decimal(rate: Decimal) -> Self {
@@ -350,21 +365,9 @@ impl<From: Currency, To: Currency> Rate<From, To> {
     ///
     /// // Inverse of 0.85 is approximately 1.176
     /// ```
-    #[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
     pub fn inverse(&self) -> Rate<To, From> {
         Rate {
             rate: decimal_one() / self.rate,
-            metadata_timestamp_unix_secs: self.metadata_timestamp_unix_secs,
-            metadata_source: self.metadata_source,
-            _from: PhantomData,
-            _to: PhantomData,
-        }
-    }
-
-    #[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-    pub fn inverse(&self) -> Rate<To, From> {
-        Rate {
-            rate: decimal_one() / &self.rate,
             metadata_timestamp_unix_secs: self.metadata_timestamp_unix_secs,
             metadata_source: self.metadata_source,
             _from: PhantomData,
@@ -382,12 +385,6 @@ mod tests {
     #[cfg(not(feature = "std"))]
     use crate::inner_prelude::*;
 
-    #[cfg(feature = "use_rust_decimal")]
-    use rust_decimal::Decimal;
-
-    #[cfg(feature = "use_bigdecimal")]
-    use bigdecimal::BigDecimal as Decimal;
-
     #[test]
     fn test_rate_creation() {
         let rate = Rate::<USD, EUR>::new(0.85);
@@ -396,7 +393,7 @@ mod tests {
 
     #[test]
     fn test_rate_from_decimal() {
-        let decimal_rate = Decimal::new(85, 2); // 0.85
+        let decimal_rate = decimal_new(85, 2); // 0.85
         let rate = Rate::<USD, EUR>::from_decimal(decimal_rate);
         assert_eq!(rate.value(), &decimal_rate);
     }
@@ -442,8 +439,8 @@ mod tests {
         let back = inverse.inverse();
 
         // Double inverse should get back to original (within precision)
-        let diff = (original.value() - back.value()).abs();
-        assert!(diff < Decimal::new(1, 10)); // Less than 0.0000000001
+        let diff = (*original.value() - *back.value()).abs();
+        assert!(diff < decimal_new(1, 10)); // Less than 0.0000000001
     }
 
     #[test]
@@ -557,7 +554,7 @@ mod tests {
 
     #[test]
     fn test_try_from_decimal_success() {
-        let decimal_rate = Decimal::new(85, 2);
+        let decimal_rate = decimal_new(85, 2);
         let result = Rate::<USD, EUR>::try_from_decimal(decimal_rate);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().value(), &decimal_rate);
@@ -571,7 +568,7 @@ mod tests {
 
     #[test]
     fn test_try_from_decimal_negative_error() {
-        let result = Rate::<USD, EUR>::try_from_decimal(Decimal::new(-85, 2));
+        let result = Rate::<USD, EUR>::try_from_decimal(decimal_new(-85, 2));
         assert!(result.is_err());
     }
 

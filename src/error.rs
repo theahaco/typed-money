@@ -66,7 +66,7 @@
 //! }
 //! ```
 
-use rust_decimal::Decimal;
+use crate::amount::Decimal;
 
 #[cfg(not(feature = "std"))]
 use crate::inner_prelude::*;

@@ -18,4 +18,4 @@ mod serialization;
 mod type_def;
 
 pub use metadata::CurrencyMetadata;
-pub use type_def::Amount;
+pub use type_def::{Amount, Decimal};

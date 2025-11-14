@@ -3,11 +3,26 @@
 use crate::Currency;
 use core::marker::PhantomData;
 
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
+#[cfg(all(
+    feature = "use_rust_decimal",
+    not(feature = "use_bigdecimal"),
+    not(feature = "use_fastnum")
+))]
+pub use rust_decimal::Decimal;
 
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
+#[cfg(all(
+    feature = "use_bigdecimal",
+    not(feature = "use_rust_decimal"),
+    not(feature = "use_fastnum")
+))]
+pub use bigdecimal::BigDecimal as Decimal;
+
+#[cfg(all(
+    feature = "use_fastnum",
+    not(feature = "use_bigdecimal"),
+    not(feature = "use_rust_decimal")
+))]
+pub use fastnum::decimal::D128 as Decimal;
 
 /// A monetary amount in a specific currency.
 ///
@@ -45,7 +60,7 @@ use bigdecimal::BigDecimal as Decimal;
 /// // This won't compile!
 /// let invalid = usd + eur;  // Error: type mismatch
 /// ```
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Amount<C: Currency> {
     /// Internal value stored as a Decimal for precision
@@ -54,14 +69,14 @@ pub struct Amount<C: Currency> {
     pub(super) _currency: PhantomData<C>,
 }
 
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Amount<C: Currency> {
-    /// Internal value stored as a Decimal for precision
-    pub(super) value: Decimal,
-    /// Phantom data to track currency type at compile time (zero runtime cost)
-    pub(super) _currency: PhantomData<C>,
-}
+// #[cfg(all(feature = "use_bigdecimal",  not(feature = "use_rust_decimal"), not(feature = "use_fastnum")))]
+// #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+// pub struct Amount<C: Currency> {
+//     /// Internal value stored as a Decimal for precision
+//     pub(super) value: Decimal,
+//     /// Phantom data to track currency type at compile time (zero runtime cost)
+//     pub(super) _currency: PhantomData<C>,
+// }
 
 impl<C: Currency> Amount<C> {
     /// Returns the raw `Decimal` value.
@@ -87,7 +102,6 @@ mod tests {
     #[cfg(not(feature = "std"))]
     use crate::inner_prelude::*;
     use crate::USD;
-    use rust_decimal::Decimal;
 
     #[test]
     fn test_copy_clone() {

@@ -3,14 +3,9 @@
 //! This module provides optional tracking capabilities for monitoring and logging
 //! currency conversions when the `conversion_tracking` feature is enabled.
 
+use crate::amount::Decimal;
 use crate::Currency;
 use std::marker::PhantomData;
-
-#[cfg(all(feature = "use_rust_decimal", not(feature = "use_bigdecimal")))]
-use rust_decimal::Decimal;
-
-#[cfg(all(feature = "use_bigdecimal", not(feature = "use_rust_decimal")))]
-use bigdecimal::BigDecimal as Decimal;
 
 /// A record of a currency conversion event.
 ///
