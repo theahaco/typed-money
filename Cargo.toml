@@ -46,7 +46,7 @@ name = "rounding"
 harness = false
 
 [features]
-default = ["std", "use_rust_decimal"]
+default = ["use_rust_decimal"]
 use_rust_decimal = ["dep:rust_decimal"]
 use_bigdecimal = ["dep:bigdecimal"]
 conversion_tracking = []
