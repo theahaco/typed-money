@@ -306,8 +306,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "fastnum"
 version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51f6015da818a5f7d959a39840e777cad2b8b99291e88cb051413fb2ebb81758"
+source = "git+https://github.com/theahaco/fastnum?rev=54a67ab33a4b3c9cacf51c17a75c6b7a96525df8#54a67ab33a4b3c9cacf51c17a75c6b7a96525df8"
 dependencies = [
  "bnum",
 ]

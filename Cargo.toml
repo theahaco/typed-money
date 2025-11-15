@@ -27,7 +27,7 @@ rust_decimal = { version = "1.33", optional = true, default-features = false }
 bigdecimal = { version = "0.4", optional = true, default-features = false }
 serde = { version = "1.0", optional = true, features = ["derive"] }
 arrayvec = { version = "0.7.6", default-features = false }
-fastnum = { version = "0.7.3", optional = true, default-features = false }
+fastnum = { version = "0.7.3", optional = true, git = "https://github.com/theahaco/fastnum", rev = "54a67ab33a4b3c9cacf51c17a75c6b7a96525df8" }
 
 [dev-dependencies]
 serde_json = "1.0"
