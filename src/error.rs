@@ -155,13 +155,13 @@ pub enum MoneyError {
         reason: &'static str,
     },
 
-    /// Failed to convert rate value to decimals.
-    InvalidRateConversion {
-        /// The rate value that was invalid
-        value: f64,
-        /// Description of why the rate is invalid
-        reason: &'static str,
-    },
+    // /// Failed to convert rate value to decimals.
+    // InvalidRateConversion {
+    //     /// The rate value that was invalid
+    //     value: f64,
+    //     /// Description of why the rate is invalid
+    //     reason: &'static str,
+    // },
 
     /// Invalid exchange rate value.
     InvalidRate {
@@ -219,7 +219,7 @@ impl MoneyError {
             MoneyError::RoundingError { .. } => {
                 "Try a different rounding mode or check the amount precision"
             }
-            MoneyError::InvalidRate { .. } | MoneyError::InvalidRateConversion { .. } => {
+            MoneyError::InvalidRate { .. }  => {
                 "Exchange rates must be positive, finite numbers"
             }
             MoneyError::Overflow { .. } => {
@@ -242,7 +242,7 @@ impl MoneyError {
                 expected_currency, ..
             } => *expected_currency,
             MoneyError::RoundingError { currency, .. } => Some(currency),
-            MoneyError::InvalidRate { .. } | MoneyError::InvalidRateConversion { .. } => None,
+            MoneyError::InvalidRate { .. }  => None,
             MoneyError::Overflow { currency, .. } => Some(currency),
             MoneyError::Underflow { currency, .. } => Some(currency),
         }
@@ -322,11 +322,6 @@ impl fmt::Display for MoneyError {
                     operation, currency
                 )
             }
-            MoneyError::InvalidRateConversion { value, reason } => write!(
-                f,
-                "Invalid exchange rate conversion from f64 '{}': {}",
-                value, reason
-            ),
         }
     }
 }

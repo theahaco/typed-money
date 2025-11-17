@@ -174,77 +174,77 @@ pub struct Rate<From: Currency, To: Currency> {
 }
 
 impl<From: Currency, To: Currency> Rate<From, To> {
-    /// Tries to create a new exchange rate from a floating-point value.
-    ///
-    /// Returns an error if the rate is zero, negative, NaN, or infinite.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use typed_money::{Rate, USD, EUR};
-    ///
-    /// let rate = Rate::<USD, EUR>::try_new(0.85)?;  // 1 USD = 0.85 EUR
-    /// assert!(rate.value() > &rust_decimal::Decimal::ZERO);
-    ///
-    /// // Invalid rates return an error
-    /// assert!(Rate::<USD, EUR>::try_new(0.0).is_err());
-    /// assert!(Rate::<USD, EUR>::try_new(-1.0).is_err());
-    /// # Ok::<(), typed_money::MoneyError>(())
-    /// ```
-    pub fn try_new(rate: f64) -> MoneyResult<Self> {
-        if !rate.is_finite() {
-            return Err(MoneyError::InvalidRateConversion {
-                value: rate,
-                reason: "Exchange rate must be a finite number",
-            });
-        }
-        let decimal_rate =
-            Decimal::try_from(rate).map_err(|_| MoneyError::InvalidRateConversion {
-                value: rate,
-                reason: "Failed to convert rate to Decimal",
-            })?;
+    // /// Tries to create a new exchange rate from a floating-point value.
+    // ///
+    // /// Returns an error if the rate is zero, negative, NaN, or infinite.
+    // ///
+    // /// # Examples
+    // ///
+    // /// ```
+    // /// use typed_money::{Rate, USD, EUR};
+    // ///
+    // /// let rate = Rate::<USD, EUR>::try_new(0.85)?;  // 1 USD = 0.85 EUR
+    // /// assert!(rate.value() > &rust_decimal::Decimal::ZERO);
+    // ///
+    // /// // Invalid rates return an error
+    // /// assert!(Rate::<USD, EUR>::try_new(0.0).is_err());
+    // /// assert!(Rate::<USD, EUR>::try_new(-1.0).is_err());
+    // /// # Ok::<(), typed_money::MoneyError>(())
+    // /// ```
+    // pub fn try_new(rate: f64) -> MoneyResult<Self> {
+    //     if !rate.is_finite() {
+    //         return Err(MoneyError::InvalidRateConversion {
+    //             value: rate,
+    //             reason: "Exchange rate must be a finite number",
+    //         });
+    //     }
+    //     let decimal_rate =
+    //         Decimal::try_from(rate).map_err(|_| MoneyError::InvalidRateConversion {
+    //             value: rate,
+    //             reason: "Failed to convert rate to Decimal",
+    //         })?;
 
-        if decimal_rate <= Decimal::ZERO {
-            return Err(MoneyError::InvalidRate {
-                value: decimal_rate,
-                reason: "Exchange rate must be positive and non-zero",
-            });
-        }
+    //     if decimal_rate <= Decimal::ZERO {
+    //         return Err(MoneyError::InvalidRate {
+    //             value: decimal_rate,
+    //             reason: "Exchange rate must be positive and non-zero",
+    //         });
+    //     }
 
-        Ok(Self {
-            rate: decimal_rate,
-            metadata_timestamp_unix_secs: None,
-            metadata_source: None,
-            _from: PhantomData,
-            _to: PhantomData,
-        })
-    }
+    //     Ok(Self {
+    //         rate: decimal_rate,
+    //         metadata_timestamp_unix_secs: None,
+    //         metadata_source: None,
+    //         _from: PhantomData,
+    //         _to: PhantomData,
+    //     })
+    // }
 
-    /// Creates a new exchange rate from a floating-point value.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the rate is zero, negative, NaN, or infinite.
-    /// For a non-panicking version, use [`try_new`](Self::try_new).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use typed_money::{Rate, USD, EUR};
-    ///
-    /// let rate = Rate::<USD, EUR>::new(0.85);  // 1 USD = 0.85 EUR
-    /// ```
-    ///
-    /// # Panics Examples
-    ///
-    /// ```should_panic
-    /// use typed_money::{Rate, USD, EUR};
-    ///
-    /// let rate = Rate::<USD, EUR>::new(0.0);  // Panics: rate must be positive
-    /// ```
-    pub fn new(rate: f64) -> Self {
-        Self::try_new(rate).expect("Invalid exchange rate")
-    }
+    // /// Creates a new exchange rate from a floating-point value.
+    // ///
+    // /// # Panics
+    // ///
+    // /// Panics if the rate is zero, negative, NaN, or infinite.
+    // /// For a non-panicking version, use [`try_new`](Self::try_new).
+    // ///
+    // /// # Examples
+    // ///
+    // /// ```
+    // /// use typed_money::{Rate, USD, EUR};
+    // ///
+    // /// let rate = Rate::<USD, EUR>::new(0.85);  // 1 USD = 0.85 EUR
+    // /// ```
+    // ///
+    // /// # Panics Examples
+    // ///
+    // /// ```should_panic
+    // /// use typed_money::{Rate, USD, EUR};
+    // ///
+    // /// let rate = Rate::<USD, EUR>::new(0.0);  // Panics: rate must be positive
+    // /// ```
+    // pub fn new(rate: f64) -> Self {
+    //     Self::try_new(rate).expect("Invalid exchange rate")
+    // }
 
     /// Tries to create a new exchange rate from a `Decimal` value.
     ///
