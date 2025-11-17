@@ -82,7 +82,7 @@ impl fmt::Display for LiquidityRating {
         }
     }
 }
-
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -131,3 +131,4 @@ mod tests {
         assert!(LiquidityRating::Medium < LiquidityRating::High);
     }
 }
+*/

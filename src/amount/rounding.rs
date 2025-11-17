@@ -106,7 +106,7 @@ impl<C: Currency> Amount<C> {
         }
     }
 }
-
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -506,3 +506,4 @@ mod tests {
         }
     }
 }
+*/

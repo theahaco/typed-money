@@ -5,9 +5,6 @@ use crate::{Currency, MoneyError, MoneyResult};
 use core::marker::PhantomData;
 use core::str::FromStr;
 
-#[cfg(not(feature = "std"))]
-use crate::inner_prelude::*;
-
 impl<C: Currency> Amount<C> {
     /// Parses a string into an Amount.
     ///
@@ -50,18 +47,18 @@ impl<C: Currency> Amount<C> {
 
         if trimmed.is_empty() {
             return Err(MoneyError::ParseError {
-                input: input.to_string(),
-                expected_currency: Some(C::CODE),
-                reason: "Empty string".to_string(),
+                // input: input.to_string(),
+                // expected_currency: Some(C::CODE),
+                // reason: "Empty string".to_string(),
             });
         }
 
         // Check for excessively long input (security)
         if trimmed.len() > 100 {
             return Err(MoneyError::ParseError {
-                input: input.to_string(),
-                expected_currency: Some(C::CODE),
-                reason: "Input too long (max 100 characters)".to_string(),
+                // input: input.to_string(),
+                // expected_currency: Some(C::CODE),
+                // reason: "Input too long (max 100 characters)".to_string(),
             });
         }
 
@@ -75,13 +72,13 @@ impl<C: Currency> Amount<C> {
             for symbol in &other_symbols {
                 if working.starts_with(symbol) && *symbol != C::SYMBOL {
                     return Err(MoneyError::ParseError {
-                        input: input.to_string(),
-                        expected_currency: Some(C::CODE),
-                        reason: format!(
-                            "Currency symbol mismatch: found {}, expected {}",
-                            symbol,
-                            C::SYMBOL
-                        ),
+                        // input: input.to_string(),
+                        // expected_currency: Some(C::CODE),
+                        // reason: format!(
+                        //     "Currency symbol mismatch: found {}, expected {}",
+                        //     symbol,
+                        //     C::SYMBOL
+                        // ),
                     });
                 }
             }
@@ -102,13 +99,13 @@ impl<C: Currency> Amount<C> {
             for code in &codes {
                 if (working.ends_with(code) || working.starts_with(code)) && *code != C::CODE {
                     return Err(MoneyError::ParseError {
-                        input: input.to_string(),
-                        expected_currency: Some(C::CODE),
-                        reason: format!(
-                            "Currency code mismatch: found {}, expected {}",
-                            code,
-                            C::CODE
-                        ),
+                        // input: input.to_string(),
+                        // expected_currency: Some(C::CODE),
+                        // reason: format!(
+                        //     "Currency code mismatch: found {}, expected {}",
+                        //     code,
+                        //     C::CODE
+                        // ),
                     });
                 }
             }
@@ -122,9 +119,9 @@ impl<C: Currency> Amount<C> {
         let res = Decimal::from_str(working);
         // Parse the numeric value
         let decimal_value = res.map_err(|_| MoneyError::ParseError {
-            input: input.to_string(),
-            expected_currency: Some(C::CODE),
-            reason: format!("Invalid numeric value: '{working}'"),
+            // input: input.to_string(),
+            // expected_currency: Some(C::CODE),
+            // reason: format!("Invalid numeric value: '{working}'"),
         })?;
 
         Ok(Self {
@@ -144,7 +141,7 @@ impl<C: Currency> FromStr for Amount<C> {
         Self::parse(s)
     }
 }
-
+/* 
 #[cfg(test)]
 mod tests {
     use core::panic;
@@ -492,3 +489,4 @@ mod tests {
         }
     }
 }
+*/

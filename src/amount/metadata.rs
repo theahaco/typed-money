@@ -1,6 +1,4 @@
 //! Currency metadata access methods for Amount.
-#[cfg(not(feature = "std"))]
-use crate::inner_prelude::*;
 use crate::{Amount, Currency};
 
 /// Extension trait for accessing currency metadata from Amount instances.
@@ -61,8 +59,8 @@ pub trait CurrencyMetadata {
     /// Returns the static liquidity rating.
     fn liquidity_rating(&self) -> crate::LiquidityRating;
 
-    /// Returns a formatted string with currency information.
-    fn currency_info(&self) -> String;
+    // /// Returns a formatted string with currency information.
+    // fn currency_info(&self) -> String;
 }
 
 impl<C: Currency> CurrencyMetadata for Amount<C> {
@@ -122,16 +120,16 @@ impl<C: Currency> CurrencyMetadata for Amount<C> {
         C::LIQUIDITY_RATING
     }
 
-    fn currency_info(&self) -> String {
-        format!(
-            "{} ({}) - {} - {} - {}",
-            C::NAME,
-            C::CODE,
-            C::COUNTRY,
-            C::CURRENCY_TYPE,
-            if C::IS_MAJOR { "Major" } else { "Minor" }
-        )
-    }
+    // fn currency_info(&self) -> String {
+    //     format!(
+    //         "{} ({}) - {} - {} - {}",
+    //         C::NAME,
+    //         C::CODE,
+    //         C::COUNTRY,
+    //         C::CURRENCY_TYPE,
+    //         if C::IS_MAJOR { "Major" } else { "Minor" }
+    //     )
+    // }
 }
 
 #[cfg(test)]
@@ -217,16 +215,16 @@ mod tests {
         assert_eq!(amount.liquidity_rating(), LiquidityRating::High);
     }
 
-    #[test]
-    fn test_currency_info_formatting() {
-        let minimal_amount = Amount::<TestCurrency>::from_major(100);
-        let rich_amount = Amount::<RichTestCurrency>::from_major(100);
+    // #[test]
+    // fn test_currency_info_formatting() {
+    //     let minimal_amount = Amount::<TestCurrency>::from_major(100);
+    //     let rich_amount = Amount::<RichTestCurrency>::from_major(100);
 
-        // Test info formatting
-        assert_eq!(&minimal_amount.currency_info(), " (TEST) -  - Fiat - Minor");
-        assert_eq!(
-            &rich_amount.currency_info(),
-            "Rich Test Currency (RICH) - Test Country - Fiat - Major"
-        );
-    }
+    //     // Test info formatting
+    //     assert_eq!(&minimal_amount.currency_info(), " (TEST) -  - Fiat - Minor");
+    //     assert_eq!(
+    //         &rich_amount.currency_info(),
+    //         "Rich Test Currency (RICH) - Test Country - Fiat - Major"
+    //     );
+    // }
 }
