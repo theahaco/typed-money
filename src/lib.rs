@@ -314,11 +314,12 @@ compile_error!("Only one decimal backend can be enabled at a time");
 mod amount;
 mod currency;
 mod error;
+mod inner_prelude;
 mod rate;
 mod rounding;
 
 #[cfg(not(feature = "std"))]
-mod inner_prelude;
+pub use fastnum::alloc;
 
 #[cfg(feature = "conversion_tracking")]
 pub mod conversion_tracking;
@@ -433,7 +434,3 @@ pub use currency::{
 pub use error::{MoneyError, MoneyResult};
 pub use rate::Rate;
 pub use rounding::RoundingMode;
-
-#[cfg(not(feature = "std"))]
-#[macro_use]
-mod macros;

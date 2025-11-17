@@ -50,6 +50,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
+name = "arrayvec"
+version = "0.7.6"
+source = "git+https://github.com/theahaco/arrayvec?rev=aa2db36bd7819a3cea0750d2d8a51f7f8c293834#aa2db36bd7819a3cea0750d2d8a51f7f8c293834"
+
+[[package]]
 name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -82,9 +87,11 @@ dependencies = [
 
 [[package]]
 name = "bnum"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f781dba93de3a5ef6dc5b17c9958b208f6f3f021623b360fb605ea51ce443f10"
+version = "0.13.0"
+source = "git+https://github.com/theahaco/bnum?rev=eea2eec5325ac0be77665a79c9a3f169e06fd583#eea2eec5325ac0be77665a79c9a3f169e06fd583"
+dependencies = [
+ "arrayvec 0.7.6 (git+https://github.com/theahaco/arrayvec?rev=aa2db36bd7819a3cea0750d2d8a51f7f8c293834)",
+]
 
 [[package]]
 name = "borsh"
@@ -306,7 +313,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "fastnum"
 version = "0.7.3"
-source = "git+https://github.com/theahaco/fastnum?rev=54a67ab33a4b3c9cacf51c17a75c6b7a96525df8#54a67ab33a4b3c9cacf51c17a75c6b7a96525df8"
+source = "git+https://github.com/theahaco/fastnum?rev=b946f0d00778ffe99e0c309b94a267bdfe12fd5f#b946f0d00778ffe99e0c309b94a267bdfe12fd5f"
 dependencies = [
  "bnum",
 ]
@@ -683,7 +690,7 @@ version = "1.39.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35affe401787a9bd846712274d97654355d21b2a2c092a3139aabe31e9022282"
 dependencies = [
- "arrayvec",
+ "arrayvec 0.7.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "borsh",
  "bytes",
  "num-traits",
@@ -857,7 +864,6 @@ name = "typed-money"
 version = "0.2.0"
 dependencies = [
  "arbitrary",
- "arrayvec",
  "bigdecimal",
  "criterion",
  "fastnum",

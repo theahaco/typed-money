@@ -150,8 +150,8 @@ impl<C: Currency> Amount<C> {
 
         // Parse the value string to add locale-specific separators
         let formatted_value = match locale {
-            "de_DE" | "de" => self.format_german_style(&value_str),
-            "fr_FR" | "fr" => self.format_french_style(&value_str),
+            // "de_DE" | "de" => self.format_german_style(&value_str),
+            // "fr_FR" | "fr" => self.format_french_style(&value_str),
             _ => self.format_us_style(&value_str), // Default to US/UK format
         };
 
@@ -163,17 +163,17 @@ impl<C: Currency> Amount<C> {
         self.add_thousands_separator(value, ',', '.')
     }
 
-    fn format_german_style(&self, value: &str) -> String {
-        // German format: 1.234,56 (period thousands, comma decimal)
-        let with_comma_decimal = value.replace('.', ",");
-        self.add_thousands_separator(&with_comma_decimal, '.', ',')
-    }
+    // fn format_german_style(&self, value: &str) -> String {
+    //     // German format: 1.234,56 (period thousands, comma decimal)
+    //     let with_comma_decimal = value.replace('.', ",");
+    //     self.add_thousands_separator(&with_comma_decimal, '.', ',')
+    // }
 
-    fn format_french_style(&self, value: &str) -> String {
-        // French format: 1 234,56 (space thousands, comma decimal)
-        let with_comma_decimal = value.replace('.', ",");
-        self.add_thousands_separator(&with_comma_decimal, ' ', ',')
-    }
+    // fn format_french_style(&self, value: &str) -> String {
+    //     // French format: 1 234,56 (space thousands, comma decimal)
+    //     let with_comma_decimal = value.replace('.', ",");
+    //     self.add_thousands_separator(&with_comma_decimal, ' ', ',')
+    // }
 
     fn add_thousands_separator(&self, value: &str, separator: char, decimal_sep: char) -> String {
         let mut parts = value.split(['.', ',']);
