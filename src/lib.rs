@@ -318,8 +318,7 @@ mod error;
 mod rate;
 mod rounding;
 
-#[cfg(not(feature = "std"))]
-pub use fastnum::alloc;
+
 
 #[cfg(feature = "conversion_tracking")]
 pub mod conversion_tracking;

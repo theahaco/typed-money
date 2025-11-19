@@ -88,7 +88,7 @@ dependencies = [
 [[package]]
 name = "bnum"
 version = "0.13.0"
-source = "git+https://github.com/theahaco/bnum?rev=eea2eec5325ac0be77665a79c9a3f169e06fd583#eea2eec5325ac0be77665a79c9a3f169e06fd583"
+source = "git+https://github.com/theahaco/bnum?rev=a65ba76d33163175bdd1ea689ab858a5d6c4ab2b#a65ba76d33163175bdd1ea689ab858a5d6c4ab2b"
 dependencies = [
  "arrayvec 0.7.6 (git+https://github.com/theahaco/arrayvec?rev=aa2db36bd7819a3cea0750d2d8a51f7f8c293834)",
 ]
@@ -313,7 +313,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "fastnum"
 version = "0.7.3"
-source = "git+https://github.com/theahaco/fastnum?rev=b946f0d00778ffe99e0c309b94a267bdfe12fd5f#b946f0d00778ffe99e0c309b94a267bdfe12fd5f"
+source = "git+https://github.com/theahaco/fastnum?rev=595edd1eb5d55d068e5f4d08b124c6b2cc709fb7#595edd1eb5d55d068e5f4d08b124c6b2cc709fb7"
 dependencies = [
  "bnum",
 ]
